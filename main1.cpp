@@ -34,7 +34,7 @@ struct World{
     //std::vector<std::vector<int>> new_w=world;
 
     void draw(sf::RenderWindow& window){
-        sf::RectangleShape cell(sf::Vector2f(TILE-1, TILE-1));
+        sf::CircleShape cell(float(TILE-7));
         cell.setFillColor(sf::Color::Cyan);
 
         for(int i=0; i<row; i++){

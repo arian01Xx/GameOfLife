@@ -8,7 +8,7 @@ constexpr int TILE=10;
 
 struct World{
     static constexpr int ROWS=70;
-    static constexpr int COLS=70;
+    static constexpr int COLS=100;
     std::vector<std::vector<int>> world{
         ROWS, std::vector<int>(COLS, 0)
     };
