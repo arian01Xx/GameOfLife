@@ -25,6 +25,7 @@ struct World{
     int population=3000;
 
     int x, y;
+    //int prev_x, prev_y;
     int row=world.size();
     int col=world[0].size();
 
@@ -34,16 +35,11 @@ struct World{
 
     void draw(sf::RenderWindow& window){
         sf::RectangleShape cell(sf::Vector2f(TILE-1, TILE-1));
-        //cell.setFillColor(sf::Color::Cyan);
+        cell.setFillColor(sf::Color::Cyan);
 
         for(int i=0; i<row; i++){
             for(int j=0; j<col; j++){
-                if(world[i][j]==1){
-                    cell.setFillColor(sf::Color::Blue);
-                    cell.setPosition({float(j*TILE), float(i*TILE)});
-                    window.draw(cell);
-                }else if(world[i][j]==2){
-                    cell.setFillColor(sf::Color(255,20,147)); //rojo, verde, azul
+                if(world[i][j]!=0){
                     cell.setPosition({float(j*TILE), float(i*TILE)});
                     window.draw(cell);
                 }
@@ -53,16 +49,13 @@ struct World{
 
     void run(){
         int _p=population;
-        bool male=true;
 
         while(_p!=0){
             x=rand()%(row);
             y=rand()%(col);
 
-            if(male) world[x][y]=1;
-            else world[x][y]=2;
-            
-            male=!male;
+            world[x][y]=1;
+
             _p--;
         }
     } 
@@ -79,14 +72,12 @@ struct World{
                     int new_i=i+_x[k];
                     int new_j=j+_y[k];
                     if(new_i<0 || new_j<0 || new_i>=row || new_j>=col) continue;
-                    if(world[new_i][new_j]!=0) neighbors++;
+                    neighbors+=world[new_i][new_j];
                 }
 
-                if(world[i][j]==0 && neighbors==3){
-                    int x=(rand()%2)+1;
-                    next[i][j]=x;
-                }
-                if((world[i][j]==1 || world[i][j]==2) && (neighbors>3 || neighbors<2)) next[i][j]=0; //MUERE 
+                if(world[i][j]==0 && neighbors==3) next[i][j]=1; //NACE
+                if(world[i][j]==1 && (neighbors>3 || neighbors<2)) next[i][j]=0; //MUERE
+                //if(world[i][j]==1 && (neighbors==2 || neighbors==3)) continue;
             }
         }
 
@@ -107,7 +98,8 @@ void execute(){
     };
 
     window.setFramerateLimit(60);
-    sf::Clock clock;
+
+    sf::Clock clock; 
 
     while(window.isOpen()){
         while(const std::optional event=window.pollEvent()){
@@ -123,21 +115,18 @@ void execute(){
                     int col=mouseButtonPressed->position.x/TILE;
                     int row=mouseButtonPressed->position.y/TILE;
 
-                    if(row>=0 && row<_w.row && col>=0 && col<_w.col){
-                        if(_w.world[row][col]==0) _w.world[row][col]=1;
-                        else _w.world[row][col]=0;
-                    }
+                    if(row>=0 && row<_w.row && col>=0 && col<_w.col) _w.world[row][col]=1;
                 } 
             }
-        }
+        } 
         
         if(!paused){
             if(clock.getElapsedTime().asMilliseconds()>150){ //si aumentas a 500 seria medio segundo
                                                              //el juego se actualiza cada medio segundo
                 _w.elevate();
-                clock.restart();
+                clock.restart(); 
             }
-        } 
+        }
 
         window.clear();
         _w.draw(window);
@@ -151,3 +140,5 @@ int main(){
 
     return 0;
 }
+
+//g++ -o m1 main1.cpp -lsfml-graphics -lsfml-window -lsfml-system
