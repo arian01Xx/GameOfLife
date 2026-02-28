@@ -2,6 +2,7 @@
 #include <SFML/Window/Event.hpp>
 #include <iostream>
 #include <cstdlib>
+#include <random>
 #include <vector>
 
 constexpr int TILE=10;
@@ -25,6 +26,8 @@ struct World{
     int population=3000;
 
     int x, y;
+    int total_population=population;
+    int females=0, males=0;
     int row=world.size();
     int col=world[0].size();
 
@@ -51,13 +54,35 @@ struct World{
         }
     }
 
+    void statistic(sf::RenderWindow& window, sf::Text& _po, sf::Text& _males, sf::Text& _females){
+        _po.setString("POPULATION: "+std::to_string(total_population)); //  \n es para salto de linea:wq
+                                                                        //
+        _males.setString("MALES: "+std::to_string(males));
+        _females.setString("FEMALES:"+std::to_string(females));
+
+        _po.setPosition(sf::Vector2f(100*TILE, 1*TILE));
+        window.draw(_po);
+
+        _males.setPosition(sf::Vector2f(100*TILE, 5*TILE));
+        window.draw(_males);
+
+        _females.setPosition(sf::Vector2f(100*TILE, 10*TILE));
+        window.draw(_females);
+    }
+
     void run(){
         int _p=population;
         bool male=true;
 
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        
+        std::uniform_int_distribution<> dis1(0, row-1);
+        std::uniform_int_distribution<> dis2(0, col-1);
+
         while(_p!=0){
-            x=rand()%(row);
-            y=rand()%(col);
+            x=dis1(gen);
+            y=dis2(gen);
 
             if(male) world[x][y]=1;
             else world[x][y]=2;
@@ -65,7 +90,21 @@ struct World{
             male=!male;
             _p--;
         }
-    } 
+    }
+
+    void recalculate(){
+        total_population=0;
+        males=0;
+        females=0;
+
+        for(int i=0; i<row; i++){
+            for(int j=0; j<col; j++){
+                if(world[i][j]!=0) total_population++;
+                if(world[i][j]==1) males++;
+                if(world[i][j]==2) females++;
+            }
+        }
+    }
 
     void elevate(){
         auto next=world;
@@ -109,6 +148,20 @@ void execute(){
     window.setFramerateLimit(60);
     sf::Clock clock;
 
+    //---------------ZONA TEXT---------------
+    sf::Font font;
+    if(!font.openFromFile("arial.ttf")) std::cerr<<"No se pudo cargar el archivo\n";
+
+    sf::Text _population(font, "", 30);
+    _population.setFillColor(sf::Color::White);
+
+    sf::Text _males(font, "", 30);
+    _males.setFillColor(sf::Color::White);
+
+    sf::Text _females(font, "", 30);
+    _females.setFillColor(sf::Color::White);
+    //---------------------------------------
+
     while(window.isOpen()){
         while(const std::optional event=window.pollEvent()){
             if(event->is<sf::Event::Closed>()) window.close();
@@ -134,12 +187,14 @@ void execute(){
         if(!paused){
             if(clock.getElapsedTime().asMilliseconds()>150){ //si aumentas a 500 seria medio segundo
                                                              //el juego se actualiza cada medio segundo
+                _w.recalculate();
                 _w.elevate();
                 clock.restart();
             }
         } 
 
         window.clear();
+        _w.statistic(window, _population, _males, _females);
         _w.draw(window);
         window.display();
     }
