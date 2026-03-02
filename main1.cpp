@@ -141,4 +141,5 @@ int main(){
     return 0;
 }
 
+//COMPILAR:
 //g++ -o m1 main1.cpp -lsfml-graphics -lsfml-window -lsfml-system
